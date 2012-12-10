@@ -23,7 +23,7 @@ exports.request = (uri, body, cb) ->
   if body then method = "POST" else method = "GET"
   
   timestamp = new Date().toISOString().replace(/\....Z/,"Z") #Shave off the milliseconds
-  hashedPath = sha url.parse(uri).path
+  hashedPath = sha url.parse(uri).pathname
   hash = sha (if body then JSON.stringify body else '')
 
   canonicalRequest = "Method:#{method}\\nHashed Path:#{hashedPath}\\nX-Ops-Content-Hash:#{hash}\\nX-Ops-Timestamp:#{timestamp}\\nX-Ops-UserId:#{user}"
