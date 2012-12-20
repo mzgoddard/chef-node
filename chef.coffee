@@ -20,8 +20,18 @@ exports.auth = (myUser, pem) ->
 exports.request = (uri, body, cb) ->
   [body, cb] = [undefined, body] unless cb?
 
-  if body then method = "POST" else method = "GET"
-  
+  if typeof uri == "object"
+    options = uri
+    uri = options.uri
+
+    if options.method
+      method = options.method
+    if options.body
+      body = options.body
+
+  if !method
+    if body then method = "POST" else method = "GET"
+
   timestamp = new Date().toISOString().replace(/\....Z/,"Z") #Shave off the milliseconds
   hashedPath = sha url.parse(uri).pathname
   hash = sha (if body then JSON.stringify body else '')
@@ -44,8 +54,8 @@ exports.request = (uri, body, cb) ->
     for h, i in signature.match /.{1,60}/g
       headers["X-Ops-Authorization-#{i+1}"] = h
 
-    request uri, {method, body, headers}, (err, resp, body) ->
+    request uri, {method, json: body, headers}, (err, resp, body) ->
       if err
         cb err
       else
-        cb null, JSON.parse body
+        cb null, if typeof body == 'string' then JSON.parse body else body

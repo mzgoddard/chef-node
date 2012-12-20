@@ -29,14 +29,26 @@
   };
 
   exports.request = function(uri, body, cb) {
-    var canonicalRequest, hash, hashedPath, method, timestamp, _ref;
+    var canonicalRequest, hash, hashedPath, method, options, timestamp, _ref;
     if (cb == null) {
       _ref = [void 0, body], body = _ref[0], cb = _ref[1];
     }
-    if (body) {
-      method = "POST";
-    } else {
-      method = "GET";
+    if (typeof uri === "object") {
+      options = uri;
+      uri = options.uri;
+      if (options.method) {
+        method = options.method;
+      }
+      if (options.body) {
+        body = options.body;
+      }
+    }
+    if (!method) {
+      if (body) {
+        method = "POST";
+      } else {
+        method = "GET";
+      }
     }
     timestamp = new Date().toISOString().replace(/\....Z/, "Z");
     hashedPath = sha(url.parse(uri).pathname);
@@ -60,13 +72,13 @@
       }
       return request(uri, {
         method: method,
-        body: body,
+        json: body,
         headers: headers
       }, function(err, resp, body) {
         if (err) {
           return cb(err);
         } else {
-          return cb(null, JSON.parse(body));
+          return cb(null, typeof body === 'string' ? JSON.parse(body) : body);
         }
       });
     });
